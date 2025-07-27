@@ -1,12 +1,15 @@
 package com.alibaba.nexus.cart.domain;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Data
+@NoArgsConstructor
 public class Cart implements Serializable {
     private static final long serialVersionUID = 1L;
 

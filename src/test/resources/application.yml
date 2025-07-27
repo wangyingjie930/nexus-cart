@@ -1,0 +1,15 @@
+spring:
+  profiles:
+    active: test
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+
+# 外部服务地址配置 - 测试环境
+services:
+  promotion:
+    url: http://localhost:8087
+  product:
+    url: http://localhost:8081

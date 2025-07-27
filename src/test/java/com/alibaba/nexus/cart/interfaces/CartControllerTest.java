@@ -41,7 +41,7 @@ public class CartControllerTest {
     @Autowired
     private CartService cartService;
 
-    private final String userId = "testUser";
+    private final String userId = "1";
     private final String sku = "testSku";
 
     @BeforeEach
@@ -56,12 +56,14 @@ public class CartControllerTest {
 
     @Test
     void testGetCart_WhenCartIsEmpty() throws Exception {
-        mockMvc.perform(get("/api/v1/carts/{userId}", userId)
+        String s = mockMvc.perform(get("/api/v1/carts/{userId}", userId)
                         .header("X-User-Vip", "false"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.items").isEmpty())
-                .andExpect(jsonPath("$.totalAmount").value(0));
+                .andExpect(jsonPath("$.totalAmount").value(0)).andReturn().getResponse().getContentAsString();
+
+        System.out.println("test: " + s);
     }
 
     @Test
@@ -73,7 +75,7 @@ public class CartControllerTest {
         request.setCategory("testCategory");
         request.setBrand("testBrand");
 
-        mockMvc.perform(post("/api/v1/carts/{userId}/items", userId)
+        String s = mockMvc.perform(post("/api/v1/carts/{userId}/items", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -81,7 +83,8 @@ public class CartControllerTest {
                 .andExpect(jsonPath("$.items[0].sku").value(sku))
                 .andExpect(jsonPath("$.items[0].quantity").value(2))
                 .andExpect(jsonPath("$.items[0].totalPrice").value(2000))
-                .andExpect(jsonPath("$.totalAmount").value(2000));
+                .andExpect(jsonPath("$.totalAmount").value(2000)).andReturn().getResponse().getContentAsString();
+        System.out.println("test: " + s);
     }
 
     @Test
