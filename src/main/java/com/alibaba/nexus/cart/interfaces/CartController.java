@@ -22,10 +22,7 @@ public class CartController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<CartView> getCart(@PathVariable String userId,
-                                            @RequestHeader(value = "X-User-Vip", defaultValue = "false") boolean isVip,
-                                            @RequestHeader(value = "X-User-Labels", required = false) String labels) {
-        UserContext userContext = new UserContext(userId, isVip, labels == null ? Collections.emptyList() : Collections.singletonList(labels));
+    public ResponseEntity<CartView> getCart(@PathVariable String userId, UserContext userContext) {
         return ResponseEntity.ok(cartService.getCart(userId, userContext));
     }
 
