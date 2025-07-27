@@ -1,0 +1,22 @@
+server:
+  port: 8088 # 购物车服务端口
+
+spring:
+  application:
+    name: cart-service
+  data:
+    redis:
+      # Redis 配置，可被环境变量覆盖
+      host: ${REDIS_ADDR:redis.infra} # 默认值与 promotion-service 的环境对齐
+      port: ${REDIS_PORT:6379}
+      database: 1 # 建议为购物车服务使用独立的 Redis 数据库
+
+# 外部服务地址配置
+services:
+  promotion:
+    # 与 promotion-service/start.sh 中的 PROMOTION_SERVICE_URL 对齐
+    # 假设这是k8s内部的服务发现地址
+    url: ${PROMOTION_SERVICE_URL:http://promotion-service.default.svc.cluster.local:8087}
+  product:
+    # 商品服务地址 (假设)
+    url: ${PRODUCT_SERVICE_URL:http://product-service.default.svc.cluster.local:8081}
