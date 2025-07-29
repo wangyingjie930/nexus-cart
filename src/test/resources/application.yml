@@ -1,11 +1,22 @@
 spring:
   profiles:
     active: test
+  # =================== 测试环境 JPA 数据源配置 (使用H2内存数据库) ===================
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # 每次测试运行时，创建表结构，测试结束后销毁，保证测试隔离性
+    show-sql: true
+  # ==============================================================================
+  # Deactivate Redis auto-configuration for tests, as we are not using it anymore
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
-      database: 0
+      repositories:
+        enabled: false
 
 # 外部服务地址配置 - 测试环境
 services:

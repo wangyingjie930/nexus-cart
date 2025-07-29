@@ -10,6 +10,7 @@ import com.alibaba.nexus.cart.infrastructure.client.PromotionServiceClient;
 import com.alibaba.nexus.cart.infrastructure.client.dto.DiscountApplication;
 import com.alibaba.nexus.cart.infrastructure.client.dto.Fact;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
@@ -26,6 +27,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CartView getCart(String userId, UserContext userContext) {
         Cart cart = findOrCreateCart(userId);
 
@@ -39,6 +41,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartView addItemToCart(String userId, CartItem item) {
         Cart cart = findOrCreateCart(userId);
         cart.addItem(item);
@@ -50,6 +53,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartView updateItemQuantity(String userId, String sku, int quantity) {
         Cart cart = findOrCreateCart(userId);
         cart.updateItemQuantity(sku, quantity);
@@ -61,6 +65,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void removeItemFromCart(String userId, String sku) {
         Cart cart = findOrCreateCart(userId);
         cart.removeItem(sku);
@@ -68,8 +73,9 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void clearCart(String userId) {
-        cartRepository.deleteByUserId(userId);
+        cartRepository.findByUserId(userId).ifPresent(cartRepository::delete);
     }
 
     private Fact buildFact(Cart cart, UserContext userContext) {

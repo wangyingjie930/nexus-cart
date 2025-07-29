@@ -10,6 +10,22 @@ spring:
       host: ${REDIS_ADDR:redis.infra} # 默认值与 promotion-service 的环境对齐
       port: ${REDIS_PORT:6379}
       database: 1 # 建议为购物车服务使用独立的 Redis 数据库
+  # =================== JPA 数据源配置 (开始) ===================
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:nexus_cart}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      # 在开发环境中，让 Hibernate 自动根据实体类创建或更新表结构
+      # 在生产环境中，通常会设置为 'validate' 或 'none'，并使用 Flyway/Liquibase 管理数据库变更
+      ddl-auto: update
+    show-sql: true # 在控制台打印执行的 SQL，方便调试
+    properties:
+      hibernate:
+        format_sql: true # 格式化 SQL
+  # =================== JPA 数据源配置 (结束) ===================
 
 # 外部服务地址配置
 services:

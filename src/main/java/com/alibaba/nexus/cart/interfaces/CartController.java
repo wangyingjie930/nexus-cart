@@ -28,7 +28,19 @@ public class CartController {
 
     @PostMapping("/{userId}/items")
     public ResponseEntity<CartView> addItem(@PathVariable String userId, @RequestBody AddItemRequest request) {
-        CartItem item = new CartItem(request.getSku(), request.getPrice(), request.getQuantity(), request.getCategory(), request.getBrand(), null, null);
+        // ========== 错误修复：修改对象创建方式 ==========
+        // 1. 使用无参构造函数创建一个空的 CartItem 对象
+        CartItem item = new CartItem();
+
+        // 2. 使用 setter 方法从请求 DTO 中填充数据
+        // 这种方式不依赖于构造函数的参数顺序和数量，更加健壮
+        item.setSku(request.getSku());
+        item.setPrice(request.getPrice());
+        item.setQuantity(request.getQuantity());
+        item.setCategory(request.getCategory());
+        item.setBrand(request.getBrand());
+        // name 和 imageUrl 字段将由后端服务（如商品服务）填充，前端添加时无需传入
+        // ============================================
         return ResponseEntity.ok(cartService.addItemToCart(userId, item));
     }
 
