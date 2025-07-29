@@ -22,10 +22,15 @@ public class CartView {
         view.setItems(cart.getItems().stream()
                 .map(CartItemDto::from)
                 .collect(Collectors.toList()));
-        view.setTotalAmount(cart.getTotalAmount());
+
+        // --- FIX: Calculate amounts directly in the DTO ---
+        long calculatedTotalAmount = cart.calculateTotalAmount();
+        view.setTotalAmount(calculatedTotalAmount);
         view.setDiscountAmount(discount.getDiscountAmount());
-        view.setFinalAmount(cart.getTotalAmount() - discount.getDiscountAmount());
+        view.setFinalAmount(calculatedTotalAmount - discount.getDiscountAmount());
         view.setDiscountDescription(discount.getDescription());
+        // --- End of Fix ---
+
         return view;
     }
 }

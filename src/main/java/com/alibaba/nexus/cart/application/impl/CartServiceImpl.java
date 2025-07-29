@@ -45,11 +45,12 @@ public class CartServiceImpl implements CartService {
     public CartView addItemToCart(String userId, CartItem item) {
         Cart cart = findOrCreateCart(userId);
         cart.addItem(item);
-        cartRepository.save(cart);
-        
-        // 创建用户上下文（实际项目中应该从请求中获取）
+        cart = cartRepository.save(cart);
+
         UserContext userContext = new UserContext(userId, false, null);
-        return getCart(userId, userContext);
+        Fact fact = buildFact(cart, userContext);
+        DiscountApplication discount = promotionServiceClient.calculateBestOffer(fact);
+        return CartView.from(cart, discount);
     }
 
     @Override
@@ -57,19 +58,21 @@ public class CartServiceImpl implements CartService {
     public CartView updateItemQuantity(String userId, String sku, int quantity) {
         Cart cart = findOrCreateCart(userId);
         cart.updateItemQuantity(sku, quantity);
-        cartRepository.save(cart);
-        
-        // 创建用户上下文（实际项目中应该从请求中获取）
+        cart = cartRepository.save(cart);
+
         UserContext userContext = new UserContext(userId, false, null);
-        return getCart(userId, userContext);
+        Fact fact = buildFact(cart, userContext);
+        DiscountApplication discount = promotionServiceClient.calculateBestOffer(fact);
+        return CartView.from(cart, discount);
     }
 
     @Override
     @Transactional
     public void removeItemFromCart(String userId, String sku) {
-        Cart cart = findOrCreateCart(userId);
-        cart.removeItem(sku);
-        cartRepository.save(cart);
+        cartRepository.findByUserId(userId).ifPresent(cart -> {
+            cart.removeItem(sku);
+            cartRepository.save(cart);
+        });
     }
 
     @Override
@@ -87,7 +90,12 @@ public class CartServiceImpl implements CartService {
 
         fact.setUser(promoUser);
         fact.setItems(cart.getItems());
-        fact.setTotalAmount(cart.getTotalAmount());
+
+        // ========== 错误修复：调用正确的方法 ==========
+        // 此处必须调用我们在 Cart.java 中定义的 calculateTotalAmount() 方法
+        fact.setTotalAmount(cart.calculateTotalAmount());
+        // ============================================
+
         fact.setEnvironment(new Fact.EnvironmentContext(Instant.now().toString(), "app"));
         return fact;
     }

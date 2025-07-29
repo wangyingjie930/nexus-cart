@@ -51,14 +51,11 @@ public class Cart implements Serializable {
         this.userId = userId;
     }
 
-    // Spring Data JPA 需要一个计算总价的方法，在获取实体后调用
-    // @PostLoad 注解使其在从数据库加载后自动执行
-    @PostLoad
-    public void calculateTotalAmount() {
-        this.totalAmount = this.items.stream()
-                .mapToLong(item -> item.getPrice() * item.getQuantity())
-                .sum();
-    }
+    // REMOVED: The @PostLoad calculation logic is no longer needed in the entity.
+    // @PostLoad
+    // public void calculateTotalAmount() { ... }
+
+    // --- Business logic methods remain unchanged ---
 
     public void addItem(CartItem newItem) {
         Optional<CartItem> existingItem = items.stream()
@@ -83,11 +80,20 @@ public class Cart implements Serializable {
             removeItem(sku);
             return;
         }
-        Optional<CartItem> existingItem = items.stream()
+        items.stream()
                 .filter(item -> item.getSku().equals(sku))
-                .findFirst();
-        existingItem.ifPresent(item -> item.setQuantity(quantity));
+                .findFirst()
+                .ifPresent(item -> item.setQuantity(quantity));
     }
 
-    // 注意：recalculateTotalAmount() 方法现在被 @PostLoad 替代，实体内部逻辑不再直接调用它
+    /**
+     * A new helper method to calculate the total amount on demand.
+     * This makes the calculation explicit and callable from the service layer.
+     * @return The total amount of all items in the cart.
+     */
+    public long calculateTotalAmount() {
+        return this.items.stream()
+                .mapToLong(item -> item.getPrice() * item.getQuantity())
+                .sum();
+    }
 }
