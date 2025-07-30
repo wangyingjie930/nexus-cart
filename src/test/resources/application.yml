@@ -24,3 +24,17 @@ services:
     url: http://localhost:8087
   product:
     url: http://localhost:8081
+
+# =================== Seata 配置 - 测试环境 (禁用Seata) ===================
+seata:
+  # 在测试环境中禁用Seata
+  enabled: false
+  # 如果需要在测试中使用Seata，可以配置以下参数
+  # application-id: cart-service-test
+  # tx-service-group: default_tx_group
+  # service:
+  #   vgroup-mapping:
+  #     default_tx_group: default
+  #   grouplist:
+  #     default: localhost:8091
+# ========================================================

@@ -14,7 +14,7 @@ spring:
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:nexus_cart}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD:root}
+    password: ${MYSQL_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -36,3 +36,22 @@ services:
   product:
     # 商品服务地址 (假设)
     url: ${PRODUCT_SERVICE_URL:http://product-service.default.svc.cluster.local:8081}
+
+# =================== Seata 配置 (新增) ===================
+seata:
+  # 是否开启Seata自动配置
+  enabled: true
+  # Seata Server的事务协调器地址
+  tx-service-group: default_tx_group
+  service:
+    # vgroupMapping后面是你的事务组名称，这个要和Seata Server里的配置对应
+    vgroup-mapping:
+      default_tx_group: default
+    # grouplist后面是Seata Server的地址
+    grouplist:
+      default: localhost:8091 # 修改为你的Seata Server IP和端口
+  # 客户端端口，请确保不与其他端口冲突
+  client:
+    rpc:
+      request-timeout: 30000
+# ========================================================
