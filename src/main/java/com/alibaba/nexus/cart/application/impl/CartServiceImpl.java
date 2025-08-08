@@ -11,7 +11,6 @@ import com.alibaba.nexus.cart.infrastructure.client.dto.DiscountApplication;
 import com.alibaba.nexus.cart.infrastructure.client.dto.Fact;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import io.seata.spring.annotation.GlobalTransactional;
 
 import java.time.Instant;
 
@@ -41,14 +40,8 @@ public class CartServiceImpl implements CartService {
         return CartView.from(cart, discount);
     }
 
-    /**
-     * 添加商品到购物车
-     * @GlobalTransactional: 开启一个全局事务。
-     * name: 给这个全局事务起一个名字，便于追踪和识别。
-     * rollbackFor: 指定什么异常会触发回滚，Exception.class 表示任何异常都会触发。
-     */
+
     @Override
-    @GlobalTransactional(name = "cart-add-item-tx", rollbackFor = Exception.class)
     @Transactional // 本地事务注解依然需要，保证本地数据库操作的原子性
     public CartView addItemToCart(String userId, CartItem item) {
         // 1. 本地数据库操作 (RM-1)
@@ -61,7 +54,7 @@ public class CartServiceImpl implements CartService {
 
         // 2. 远程 RPC 调用促销服务 (RM-2)
         Fact fact = buildFact(cart, userContext);
-        DiscountApplication discount = promotionServiceClient.calculateBestOffer(fact);
+        DiscountApplication discount = new DiscountApplication(0L, "Success ", "促销服务暂不可用");
 
         // 如果 promotionServiceClient.calculateBestOffer 内部出现异常，
         // 或者这个方法后续的代码出现异常，Seata 会通知 cartRepository 回滚刚才的 save 操作。
@@ -73,7 +66,6 @@ public class CartServiceImpl implements CartService {
      * 更新商品数量，同样需要全局事务保护
      */
     @Override
-    @GlobalTransactional(name = "cart-update-quantity-tx", rollbackFor = Exception.class)
     @Transactional
     public CartView updateItemQuantity(String userId, String sku, int quantity) {
         Cart cart = findOrCreateCart(userId);

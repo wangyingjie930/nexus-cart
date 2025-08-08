@@ -10,6 +10,13 @@ spring:
       host: ${REDIS_ADDR:redis.infra} # 默认值与 promotion-service 的环境对齐
       port: ${REDIS_PORT:6379}
       database: 1 # 建议为购物车服务使用独立的 Redis 数据库
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: cart-service-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
   # =================== JPA 数据源配置 (开始) ===================
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:nexus_cart}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
@@ -55,17 +62,3 @@ seata:
     rpc:
       request-timeout: 30000
 # ========================================================
-
-  # =================== Kafka Consumer 配置 (新增) ===================
-  kafka:
-    consumer:
-      # Kafka broker地址，可被环境变量 KAFKA_BOOTSTRAP_SERVERS 覆盖
-      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-      # 消费者组ID
-      group-id: cart-service-consumer-group
-      # 当没有初始偏移量或当前偏移量不存在时，从最早的记录开始消费
-      auto-offset-reset: earliest
-      # Key和Value的反序列化器
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-  # =============================================================

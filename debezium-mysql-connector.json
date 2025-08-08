@@ -12,8 +12,8 @@
     "database.server.name": "cart-service-server",
     "database.include.list": "nexus_cart",
 
-    "database.history.kafka.bootstrap.servers": "kafka:29092",
-    "database.history.kafka.topic": "dbhistory.cart-service",
+    "schema.history.internal.kafka.bootstrap.servers": "kafka:29092",
+    "schema.history.internal.kafka.topic": "dbhistory.cart-service",
     "include.schema.changes": "true",
 
     "topic.prefix": "cart-service-events",
