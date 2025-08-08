@@ -55,3 +55,17 @@ seata:
     rpc:
       request-timeout: 30000
 # ========================================================
+
+  # =================== Kafka Consumer 配置 (新增) ===================
+  kafka:
+    consumer:
+      # Kafka broker地址，可被环境变量 KAFKA_BOOTSTRAP_SERVERS 覆盖
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+      # 消费者组ID
+      group-id: cart-service-consumer-group
+      # 当没有初始偏移量或当前偏移量不存在时，从最早的记录开始消费
+      auto-offset-reset: earliest
+      # Key和Value的反序列化器
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  # =============================================================

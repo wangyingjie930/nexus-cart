@@ -1,0 +1,23 @@
+{
+  "name": "cart-service-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "root",
+    "database.password": "123456",
+    "database.server.id": "184054",
+    "database.server.name": "cart-service-server",
+    "database.include.list": "nexus_cart",
+
+    "database.history.kafka.bootstrap.servers": "kafka:29092",
+    "database.history.kafka.topic": "dbhistory.cart-service",
+    "include.schema.changes": "true",
+
+    "topic.prefix": "cart-service-events",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+  }
+}

@@ -1,0 +1,116 @@
+version: '3.8'
+
+networks:
+  nexus-network:
+    driver: bridge
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: nexus_seata # Database for Seata
+    volumes:
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d # Script to create cart-service DB
+    networks:
+      - nexus-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - nexus-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    networks:
+      - nexus-network
+
+  connect:
+    container_name: kafka-connect
+    build:
+      context: ./kafka-connect
+    ports:
+      - "8083:8083"
+    depends_on:
+      - kafka
+      - mysql
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: 'kafka:29092'
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+    networks:
+      - nexus-network
+
+  seata-server:
+    image: seataio/seata-server:1.8.0
+    container_name: seata-server
+    ports:
+      - "8091:8091"
+      - "7091:7091"
+    depends_on:
+      - mysql
+    environment:
+      SEATA_PORT: 8091
+      STORE_MODE: db
+      STORE_DB_URL: jdbc:mysql://mysql:3306/nexus_seata?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      STORE_DB_USER: root
+      STORE_DB_PASSWORD: 123456
+    volumes:
+      - "/usr/share/zoneinfo/Asia/Shanghai:/etc/localtime"
+      - "/usr/share/zoneinfo/Asia/Shanghai:/etc/timezone"
+    networks:
+      - nexus-network
+
+  cart-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cart-service
+    ports:
+      - "8088:8088"
+    depends_on:
+      - mysql
+      - seata-server
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: nexus_cart
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 123456
+      SPRING_APPLICATION_JSON: '{"seata":{"service":{"grouplist":{"default":"seata-server:8091"}}}}'
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - nexus-network
